@@ -21,4 +21,24 @@ const getManufacturerById = async (request, response) => {
     : response.sendStatus(404)
 }
 
-module.exports = { getAllManufacturers, getManufacturerById }
+const getManufacturerByName = async (request, response) => {
+  try {
+    const { name } = request.params
+
+    const foundManufacturer = await models.Manufacturers.findOne({
+      where: {
+        name: { [models.Op.like]: `%${name}%` },
+      },
+      attributes: ['id', 'name', 'country'],
+      include: [{ model: models.Products, attributes: ['id', 'name', 'yearIntroduced'] }]
+    })
+
+    return foundManufacturer
+      ? response.send(foundManufacturer)
+      : response.sendStatus(404)
+  } catch (error) {
+    return response.status(500).send('RIP. No matching manufacturer found.')
+  }
+}
+
+module.exports = { getAllManufacturers, getManufacturerById, getManufacturerByName }
